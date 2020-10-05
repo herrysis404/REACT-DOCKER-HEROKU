@@ -1,71 +1,93 @@
-# React Styled Components Example
- 
-This example app shows how to create a React app and use Styled Components for its CSS.
+## React app file required
 
-Please read [Build a React App with Styled Components](https://developer.okta.com/blog/2020/03/16/react-styled-components) to see how this app was created.
+- nginx.config
 
-**Prerequisites:** 
+  ```
+  server {
+    listen       ${PORT:-80};
+    server_name  _;
 
-* [Node 12+](https://nodejs.org/en/) installed
-* An [Okta Developer Account](https://developer.okta.com/signup)
+    root /usr/share/nginx/html;
+    index index.html;
 
-> [Okta](https://developer.okta.com/) has Authentication and User Management APIs that reduce development time with instant-on, scalable user infrastructure. Okta's intuitive API and expert support make it easy for developers to authenticate, manage and secure users and roles in any application.
+    location / {
+        try_files $$uri /index.html;
+    }
+  }
+  ```
 
-* [Getting Started](#getting-started)
-* [Links](#links)
-* [Help](#help)
-* [License](#license)
+- Dockerfile
 
-## Getting Started
+  ```
+  FROM node:14.1-alpine AS builder
 
-To install this example application, run the following commands:
+  WORKDIR /opt/web
+  COPY package.json package-lock.json ./
+  RUN npm cache verify
+  RUN npm install
 
-```bash
-git clone https://github.com/oktadeveloper/okta-react-styled-components-example.git
-cd okta-react-styled-components-example
-npm install
-```
+  ENV PATH="./node_modules/.bin:$PATH"
 
-### Create an OIDC App on Okta
+  COPY . ./
+  RUN npm run build
 
-Register a new application by going to **Applications** > **Add Application**. On the next screen, choose **Single Page App** and click **Next**.
+  FROM nginx:1.17-alpine
+  RUN apk --no-cache add curl
+  RUN curl -L https://github.com/a8m/envsubst/releases/download/v1.1.0/envsubst-`uname -s`-`uname -m` -o envsubst && \
+      chmod +x envsubst && \
+      mv envsubst /usr/local/bin
+  COPY ./nginx.config /etc/nginx/nginx.template
+  CMD ["/bin/sh", "-c", "envsubst < /etc/nginx/nginx.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
+  COPY --from=builder /opt/web/build /usr/share/nginx/html
+  ```
 
-On the following screen, you can edit the application's settings. Make sure that the port number is 3000 and the base URI is `http://localhost:3000/`. Change the Login Redirect URI to `http://localhost:3000/callback`. Once you are done, you will see a **Client ID**.
+- static.json
+  ```
+    {
+    "headers": {
+      "/**": {
+        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:;",
+        "Referrer-Policy": "no-referrer, strict-origin-when-cross-origin",
+        "Strict-Transport-Security": "max-age=63072000; includeSubDomains",
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+        "X-XSS-Protection": "1; mode=block",
+        "Feature-Policy": "accelerometer 'none'; camera 'none'; microphone 'none'"
+      }
+    },
+    "https_only": true,
+    "root": "build/",
+    "routes": {
+      "/**": "index.html"
+    }
+  }
+  ```
 
-### Configure your Okta Settings
+## Local for docker
+- Build D
 
-Copy your Okta domain and client ID into `src/App.js`:
-
-```js
-function App() {
-  return (
-      <Router>
-        <Security issuer='https://{YourOktaDomain}/oauth2/default'
-                  clientId='{ClientId}'
-                  redirectUri={window.location.origin + '/callback'}
-               pkce={true}>
-          <SecureRoute path='/' exact={true} component={Calendar}/>
-          <Route path='/callback' component={LoginCallback}/>
-        </Security>
-      </Router>
-  );
-}
-```
-
-Start everything with `npm start` and you'll be able to login with React and Okta!
-
-## Links
-
-This example uses the following open source libraries:
-
-* [React](https://reactjs.org/)
-* [Styled Components](https://styled-components.com/)
-* [Okta React SDK](https://github.com/okta/okta-oidc-js/tree/master/packages/okta-react)
-
-## Help
-
-Please post any questions as issues in this repository, or visit our [Okta Developer Forums](https://devforum.okta.com/).
-
-## License
-
-Apache 2.0, see [LICENSE](LICENSE).
+## Heroku for docker
+- Login heroku
+  ```
+  heroku login
+  ```
+- Create new heroku app
+  ```
+  heroku create
+  ```
+- Login heroku container
+  ```
+  heroku container:login
+  ```
+- Add docker remote git
+  ```
+  git remote add docker https://git.heroku.com/<your-app-name>.git
+  ```
+- Build and push your image to heroku docker
+  ```
+  heroku container:push web --remote docker
+  ```
+- Release your app to heroku docker
+  ```
+  heroku container:release web --remote docker
+  ```
