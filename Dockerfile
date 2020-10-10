@@ -23,4 +23,5 @@ RUN chmod 0775 /app/gautam/gclone
 COPY requirements.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt --upgrade youtube-dl
 COPY . .
-CMD ["bash","start.sh"]
+
+CMD ["python3", "-m", "bot"]
