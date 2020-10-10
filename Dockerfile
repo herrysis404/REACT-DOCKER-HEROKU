@@ -1,20 +1,26 @@
-FROM node:14.1-alpine AS builder
+FROM ubuntu:20.04
 
-WORKDIR /opt/web
-COPY package.json ./
-RUN npm cache clean --force
-RUN npm install
 
-ENV PATH="./node_modules/.bin:$PATH"
+RUN mkdir ./app
+RUN chmod 777 ./app
+WORKDIR /app
 
-COPY . ./
-RUN npm run build
+RUN apt -qq update
 
-FROM nginx:1.17-alpine
-RUN apk --no-cache add curl
-RUN curl -L https://github.com/a8m/envsubst/releases/download/v1.1.0/envsubst-`uname -s`-`uname -m` -o envsubst && \
-    chmod +x envsubst && \
-    mv envsubst /usr/local/bin
-COPY ./nginx.config /etc/nginx/nginx.template
-CMD ["/bin/sh", "-c", "envsubst < /etc/nginx/nginx.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
-COPY --from=builder /opt/web/build /usr/share/nginx/html
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Asia/Jakarta
+
+RUN apt-get update --fix-missing
+RUN apt-get -qq install -y git aria2 wget curl busybox unzip unrar tar python3 ffmpeg python3-pip
+RUN wget https://rclone.org/install.sh
+RUN bash install.sh
+
+#RUN mkdir /app/gautam
+#RUN wget -O /app/gautam/gclone.gz https://git.io/JJMSG
+#RUN gzip -d /app/gautam/gclone.gz
+#RUN chmod 0775 /app/gautam/gclone
+
+COPY requirements.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt --upgrade youtube-dl
+COPY . .
+CMD ["bash","start.sh"]
