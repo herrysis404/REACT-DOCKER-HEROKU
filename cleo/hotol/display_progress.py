@@ -105,5 +105,5 @@ def get_readable_time(seconds: int) -> str:
     if minutes != 0:
         result += f'{minutes} m: '
     seconds = int(seconds)
-    result += f'{seconds} s: '
+    result += f'{seconds} s '
     return result
