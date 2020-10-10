@@ -1,4 +1,4 @@
-[<img src="https://www.herokucdn.com/deploy/button.svg" alt="Deploy to Heroku" height="40"/>](https://heroku.com/deploy?template=https://github.com/ujicobake102/REACT-DOCKER-HEROKU "Heroku")
+[<img src="https://www.herokucdn.com/deploy/button.svg" alt="Deploy to Heroku" height="40"/>](https://heroku.com/deploy?=https://github.com/ujicobake102/REACT-DOCKER-HEROKU "Heroku")
 ## React app file required
 
 - nginx.config
