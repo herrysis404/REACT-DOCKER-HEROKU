@@ -61,7 +61,7 @@ async def aria_start():
     aria2_daemon_start_cmd.append("--force-save=true")      
     #aria2_daemon_start_cmd.append(f"--bt-stop-timeout={MAX_TIME_TO_WAIT_FOR_TORRENTS_TO_START}")
     #
-    LOGGER.info(aria2_daemon_start_cmd)
+    #LOGGER.info(aria2_daemon_start_cmd)
     #
     process = await asyncio.create_subprocess_exec(
         *aria2_daemon_start_cmd,
@@ -483,7 +483,7 @@ async def check_progress_for_dl(aria2, gid, event, previous_message):
             return False
         elif " depth exceeded" in str(e):
             file.remove(force=True)
-            await event.edit("Download Auto Canceled\nYou cant leech more than 3 days.\n Please qonsidering everyone's need too  🧔🏻")
+            await event.edit("Download Auto Canceled\nYou cant leech more than 3 days.\n Please qonsidering everyone's needs too  🧔🏻")
             return False
         else:
             LOGGER.info(str(e))
