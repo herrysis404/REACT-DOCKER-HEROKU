@@ -112,7 +112,7 @@
       "required": false
     }
   },
-  "stack": "container"
+  "stack": "container",
   "formation": {
     "worker": {
       "quantity": 1,
